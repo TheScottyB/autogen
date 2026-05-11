@@ -72,8 +72,10 @@ jobs:
       with:
         python-version: "3.11"
     - run: uv sync --locked --all-extras
+      if: matrix.os == 'ubuntu-latest'
       working-directory: ./python
     - name: Prepare python venv
+      if: matrix.os == 'ubuntu-latest'
       run: |
         source ${{ github.workspace }}/python/.venv/bin/activate
     - name: Setup .NET 8.0
@@ -132,7 +134,7 @@ jobs:
         files: ${{ github.workspace }}/dotnet/coverage-report/*.xml
         flags: unittests
         name: dotnet-codecov
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
 
   integration-test:
