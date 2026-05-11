@@ -177,7 +177,11 @@ jobs:
     - name: Install .NET Aspire workload
       run: dotnet workload install aspire
     - name: Install dev certs
-      run:  dotnet --version && dotnet dev-certs https --trust
+      run: |
+        dotnet --version
+        dotnet dev-certs https --trust || true
+        export SSL_CERT_DIR="$HOME/.aspnet/dev-certs/trust:${SSL_CERT_DIR:-/usr/lib/ssl/certs}"
+        echo "SSL_CERT_DIR=$SSL_CERT_DIR" >> $GITHUB_ENV
     - name: Restore dependencies
       run: |
         dotnet restore -bl
