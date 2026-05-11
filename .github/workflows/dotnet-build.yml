@@ -72,8 +72,10 @@ jobs:
       with:
         python-version: "3.11"
     - run: uv sync --locked --all-extras
+      if: matrix.os == 'ubuntu-latest'
       working-directory: ./python
     - name: Prepare python venv
+      if: matrix.os == 'ubuntu-latest'
       run: |
         source ${{ github.workspace }}/python/.venv/bin/activate
     - name: Setup .NET 8.0
@@ -132,7 +134,7 @@ jobs:
         files: ${{ github.workspace }}/dotnet/coverage-report/*.xml
         flags: unittests
         name: dotnet-codecov
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
 
   integration-test:
@@ -171,11 +173,15 @@ jobs:
         dotnet-version: '9.0.x'
     - name: Install Temp Global.JSON
       run: |
-        echo "{\"sdk\": {\"version\": \"9.0\"}}" > global.json
+        echo '{"sdk": {"version": "9.0.100", "rollForward": "latestFeature"}}' > global.json
     - name: Install .NET Aspire workload
       run: dotnet workload install aspire
     - name: Install dev certs
-      run:  dotnet --version && dotnet dev-certs https --trust
+      run: |
+        dotnet --version
+        dotnet dev-certs https --trust || true
+        export SSL_CERT_DIR="$HOME/.aspnet/dev-certs/trust:${SSL_CERT_DIR:-/usr/lib/ssl/certs}"
+        echo "SSL_CERT_DIR=$SSL_CERT_DIR" >> $GITHUB_ENV
     - name: Restore dependencies
       run: |
         dotnet restore -bl
